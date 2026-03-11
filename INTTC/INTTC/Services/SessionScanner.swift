@@ -6,8 +6,16 @@ final class SessionScanner {
     static func findClaudeSessions() -> [ClaudeSession] {
         let claudePIDs = findClaudePIDs()
         var sessions: [ClaudeSession] = []
+        var seenShellPIDs: Set<pid_t> = []
 
         for pid in claudePIDs {
+            // Deduplicate: Claude spawns multiple processes per session
+            // sharing the same parent shell — keep only one per shell
+            if let parentPID = getParentPID(pid) {
+                if seenShellPIDs.contains(parentPID) { continue }
+                seenShellPIDs.insert(parentPID)
+            }
+
             if let (terminalApp, terminalPID) = findTerminalAncestor(for: pid) {
                 let projectPath = getWorkingDirectory(for: pid)
                 sessions.append(ClaudeSession(
@@ -25,62 +33,54 @@ final class SessionScanner {
     // MARK: - Process Discovery
 
     private static func findClaudePIDs() -> [pid_t] {
-        let count = proc_listallpids(nil, 0)
-        guard count > 0 else { return [] }
+        // Use pgrep for reliable detection — proc_name/proc_pidpath are
+        // restricted by macOS privacy controls and return empty for Claude
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
+        task.arguments = ["-x", "claude"]
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        task.standardError = FileHandle.nullDevice
 
-        var pids = [pid_t](repeating: 0, count: Int(count) * 2)
-        let byteSize = Int32(MemoryLayout<pid_t>.size * pids.count)
-        let actualCount = proc_listallpids(&pids, byteSize)
-        guard actualCount > 0 else { return [] }
-
-        var claudePIDs: [pid_t] = []
-
-        for i in 0..<Int(actualCount) {
-            let pid = pids[i]
-            guard pid > 0 else { continue }
-
-            // Check process name
-            var nameBuffer = [CChar](repeating: 0, count: Int(MAXCOMLEN) + 1)
-            proc_name(pid, &nameBuffer, UInt32(nameBuffer.count))
-            let name = String(cString: nameBuffer)
-
-            if name == "claude" {
-                claudePIDs.append(pid)
-                continue
-            }
-
-            // Check executable path for claude
-            var pathBuffer = [CChar](repeating: 0, count: Int(MAXPATHLEN))
-            let pathLength = proc_pidpath(pid, &pathBuffer, UInt32(MAXPATHLEN))
-            if pathLength > 0 {
-                let path = String(cString: pathBuffer)
-                if path.hasSuffix("/claude") {
-                    claudePIDs.append(pid)
-                }
-            }
+        do {
+            try task.run()
+            task.waitUntilExit()
+        } catch {
+            return []
         }
 
-        return claudePIDs
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8) ?? ""
+        return output.split(separator: "\n").compactMap { pid_t($0) }
     }
 
     // MARK: - Process Tree Walking
+
+    private static func getParentPID(_ pid: pid_t) -> pid_t? {
+        // Try proc_pidinfo first (fast)
+        var info = proc_bsdinfo()
+        let size = proc_pidinfo(
+            pid, PROC_PIDTBSDINFO, 0, &info,
+            Int32(MemoryLayout<proc_bsdinfo>.size)
+        )
+        if size == Int32(MemoryLayout<proc_bsdinfo>.size) {
+            return pid_t(info.pbi_ppid)
+        }
+
+        // Fallback: sysctl — works for setuid processes like /usr/bin/login
+        var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, Int32(pid)]
+        var kinfo = kinfo_proc()
+        var ksize = MemoryLayout<kinfo_proc>.size
+        guard sysctl(&mib, 4, &kinfo, &ksize, nil, 0) == 0 else { return nil }
+        return kinfo.kp_eproc.e_ppid
+    }
 
     private static func findTerminalAncestor(for pid: pid_t) -> (TerminalApp, pid_t)? {
         var currentPID = pid
         let runningApps = NSWorkspace.shared.runningApplications
 
         for _ in 0..<20 {
-            var info = proc_bsdinfo()
-            let size = proc_pidinfo(
-                currentPID,
-                PROC_PIDTBSDINFO,
-                0,
-                &info,
-                Int32(MemoryLayout<proc_bsdinfo>.size)
-            )
-            guard size == Int32(MemoryLayout<proc_bsdinfo>.size) else { return nil }
-
-            let parentPID = pid_t(info.pbi_ppid)
+            guard let parentPID = getParentPID(currentPID) else { return nil }
             guard parentPID > 1 else { return nil }
 
             if let app = runningApps.first(where: { $0.processIdentifier == parentPID }),

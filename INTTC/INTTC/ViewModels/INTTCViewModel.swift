@@ -11,17 +11,15 @@ final class INTTCViewModel: ObservableObject {
             updateLaunchAtLogin()
         }
     }
+    @Published var killOnHide: Bool = false
     @Published var needsSetup: Bool = false
-    @Published var suspendProcesses: Bool {
-        didSet { UserDefaults.standard.set(suspendProcesses, forKey: "suspendProcesses") }
-    }
     @Published var errorMessage: String?
 
     var onStateChange: ((Bool) -> Void)?
     private var isInitialized = false
     private var scanTimer: Timer?
-    private var hiddenSnapshots: [WindowSnapshot] = []
     private var hiddenClaudePIDs: [pid_t] = []
+    private var hiddenTerminalPIDs: Set<pid_t> = []
 
     private static let appSupportDir: URL = {
         let dir = FileManager.default
@@ -36,7 +34,6 @@ final class INTTCViewModel: ObservableObject {
     }
 
     init() {
-        self.suspendProcesses = UserDefaults.standard.bool(forKey: "suspendProcesses")
         self.needsSetup = !WindowManager.checkAccessibilityPermission()
 
         if #available(macOS 13.0, *) {
@@ -77,42 +74,24 @@ final class INTTCViewModel: ObservableObject {
 
     private func hideAll() {
         guard !sessions.isEmpty else { return }
-        guard WindowManager.checkAccessibilityPermission() else {
-            needsSetup = true
-            return
-        }
 
-        var snapshots: [WindowSnapshot] = []
-        var claudePIDs: [pid_t] = []
-
-        // Group sessions by terminal PID to avoid duplicate work
+        let claudePIDs = sessions.map(\.claudePID)
         let terminalPIDs = Set(sessions.map(\.terminalPID))
 
+        // Kill Claude processes if enabled (for sleep/overnight)
+        if killOnHide {
+            ProcessManager.killAll(pids: claudePIDs)
+        }
+
+        // Hide terminal apps using native macOS hide
         for terminalPID in terminalPIDs {
-            guard let session = sessions.first(where: { $0.terminalPID == terminalPID }) else {
-                continue
-            }
-            let windows = WindowManager.windowsForApp(pid: terminalPID)
-
-            for window in windows {
-                if let snapshot = WindowManager.snapshotWindow(
-                    window, bundleID: session.terminalApp.rawValue
-                ) {
-                    snapshots.append(snapshot)
-                    WindowManager.hideWindow(window)
-                }
+            if let app = NSRunningApplication(processIdentifier: terminalPID) {
+                app.hide()
             }
         }
 
-        // Collect Claude PIDs for optional suspension
-        claudePIDs = sessions.map(\.claudePID)
-
-        if suspendProcesses {
-            ProcessManager.suspendAll(pids: claudePIDs)
-        }
-
-        hiddenSnapshots = snapshots
         hiddenClaudePIDs = claudePIDs
+        hiddenTerminalPIDs = terminalPIDs
         isHidden = true
         onStateChange?(true)
 
@@ -120,40 +99,15 @@ final class INTTCViewModel: ObservableObject {
     }
 
     private func showAll() {
-        // Resume processes first
-        if suspendProcesses {
-            ProcessManager.resumeAll(pids: hiddenClaudePIDs)
-        }
-
-        // Restore windows by finding offscreen windows in each terminal app
-        for bundleID in Set(hiddenSnapshots.map(\.bundleID)) {
-            let apps = NSWorkspace.shared.runningApplications.filter {
-                $0.bundleIdentifier == bundleID
-            }
-            for app in apps {
-                let windows = WindowManager.windowsForApp(pid: app.processIdentifier)
-                var remaining = hiddenSnapshots.filter { $0.bundleID == bundleID }
-
-                for window in windows {
-                    guard let pos = WindowManager.getWindowPosition(window),
-                          pos.x < -10000 else { continue }
-
-                    // Match by window title
-                    let title = WindowManager.getWindowTitle(window)
-                    if let idx = remaining.firstIndex(where: { $0.windowTitle == title }) {
-                        WindowManager.restoreWindow(window, to: remaining[idx])
-                        remaining.remove(at: idx)
-                    } else if let first = remaining.first {
-                        // Fallback: restore to any remaining snapshot position
-                        WindowManager.restoreWindow(window, to: first)
-                        remaining.removeFirst()
-                    }
-                }
+        // Unhide terminal apps
+        for terminalPID in hiddenTerminalPIDs {
+            if let app = NSRunningApplication(processIdentifier: terminalPID) {
+                app.unhide()
             }
         }
 
-        hiddenSnapshots = []
         hiddenClaudePIDs = []
+        hiddenTerminalPIDs = []
         isHidden = false
         onStateChange?(false)
 
@@ -167,19 +121,15 @@ final class INTTCViewModel: ObservableObject {
 
         do {
             let data = try Data(contentsOf: Self.recoveryFileURL)
-            let state = try JSONDecoder().decode(HiddenWindowsState.self, from: data)
+            let state = try JSONDecoder().decode(HiddenState.self, from: data)
 
-            for snapshot in state.snapshots {
+            // Unhide any terminal apps that were hidden
+            for bundleID in state.terminalBundleIDs {
                 let apps = NSWorkspace.shared.runningApplications.filter {
-                    $0.bundleIdentifier == snapshot.bundleID
+                    $0.bundleIdentifier == bundleID
                 }
                 for app in apps {
-                    let windows = WindowManager.windowsForApp(pid: app.processIdentifier)
-                    for window in windows {
-                        if let pos = WindowManager.getWindowPosition(window), pos.x < -10000 {
-                            WindowManager.restoreWindow(window, to: snapshot)
-                        }
-                    }
+                    app.unhide()
                 }
             }
 
@@ -215,7 +165,14 @@ final class INTTCViewModel: ObservableObject {
     // MARK: - Private
 
     private func saveCrashRecovery() {
-        let state = HiddenWindowsState(snapshots: hiddenSnapshots, hiddenAt: Date())
+        let terminalBundleIDs = sessions.compactMap { session -> String? in
+            NSRunningApplication(processIdentifier: session.terminalPID)?.bundleIdentifier
+        }
+        let state = HiddenState(
+            claudePIDs: hiddenClaudePIDs,
+            terminalBundleIDs: Array(Set(terminalBundleIDs)),
+            hiddenAt: Date()
+        )
         do {
             let data = try JSONEncoder().encode(state)
             try data.write(to: Self.recoveryFileURL)

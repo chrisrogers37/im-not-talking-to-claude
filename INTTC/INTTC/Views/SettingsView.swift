@@ -1,18 +1,18 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @Binding var suspendProcesses: Bool
+    @Binding var killOnHide: Bool
 
     var body: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("Suspend processes when hidden")
+                Text("Kill processes on hide")
                     .font(.system(size: 11))
                     .foregroundColor(INTTCTheme.textMuted)
 
                 Spacer()
 
-                Toggle("", isOn: $suspendProcesses)
+                Toggle("", isOn: $killOnHide)
                     .toggleStyle(.switch)
                     .scaleEffect(0.6)
                     .frame(width: 36)
@@ -20,7 +20,7 @@ struct SettingsView: View {
 
             HStack {
                 Text("⌘⇧H")
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .foregroundColor(INTTCTheme.textFaint)
                 Text("Toggle shortcut")
                     .font(.system(size: 10))

@@ -8,18 +8,13 @@ struct MasterToggleView: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 0) {
-                    Text("Babe, ")
-                        .italic()
-                        .foregroundColor(INTTCTheme.textMuted)
-                    Text(isHidden ? "Not Talking To Claude" : "Talking To Claude")
-                        .foregroundColor(INTTCTheme.text)
-                }
-                .font(.system(size: 13, weight: .semibold))
+                Text(isHidden ? "Not Talking To Claude" : "Talking To Claude")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(INTTCTheme.text)
 
                 Text(isHidden
-                    ? "Nothing to see here."
-                    : "\(sessionCount) session\(sessionCount == 1 ? "" : "s") exposed.")
+                    ? "Claude who?"
+                    : "\(sessionCount) session\(sessionCount == 1 ? "" : "s") in the open.")
                     .font(.system(size: 11))
                     .foregroundColor(INTTCTheme.textFaint)
             }
