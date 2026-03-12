@@ -37,7 +37,7 @@ struct PopoverContentView: View {
 
             Divider().opacity(0.3)
 
-            SettingsView(suspendProcesses: $viewModel.suspendProcesses)
+            SettingsView(killOnHide: $viewModel.killOnHide)
 
             Divider().opacity(0.3)
 
