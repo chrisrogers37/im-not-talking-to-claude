@@ -12,7 +12,6 @@ final class INTTCViewModel: ObservableObject {
         }
     }
     @Published var killOnHide: Bool = false
-    @Published var needsSetup: Bool = false
     @Published var errorMessage: String?
 
     var onStateChange: ((Bool) -> Void)?
@@ -34,8 +33,6 @@ final class INTTCViewModel: ObservableObject {
     }
 
     init() {
-        self.needsSetup = !WindowManager.checkAccessibilityPermission()
-
         if #available(macOS 13.0, *) {
             self.launchAtLogin = SMAppService.mainApp.status == .enabled
         }
@@ -145,18 +142,6 @@ final class INTTCViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Setup
-
-    func checkAccessibility() -> Bool {
-        let granted = WindowManager.checkAccessibilityPermission()
-        needsSetup = !granted
-        return granted
-    }
-
-    func requestAccessibility() {
-        WindowManager.requestAccessibilityPermission()
-    }
-
     func quit() {
         restoreBeforeQuit()
         NSApplication.shared.terminate(nil)
@@ -176,6 +161,10 @@ final class INTTCViewModel: ObservableObject {
         do {
             let data = try JSONEncoder().encode(state)
             try data.write(to: Self.recoveryFileURL)
+            try FileManager.default.setAttributes(
+                [.posixPermissions: 0o600],
+                ofItemAtPath: Self.recoveryFileURL.path
+            )
         } catch {
             // Non-fatal
         }
