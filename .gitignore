@@ -6,3 +6,6 @@ dist
 DerivedData
 INTTC/build
 .superpowers/
+.env
+.env.*
+!.env.example
