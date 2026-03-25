@@ -14,7 +14,7 @@
 		D10000050000000000000005 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000050000000000000005; };
 		D10000060000000000000006 /* SessionScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000060000000000000006; };
 		D10000070000000000000007 /* TerminalDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000070000000000000007; };
-		D10000080000000000000008 /* WindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000080000000000000008; };
+
 		D10000090000000000000009 /* ProcessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000090000000000000009; };
 		D1000010000000000000000A /* INTTCViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000010000000000000000A; };
 		D1000011000000000000000B /* PopoverContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2000011000000000000000B; };
@@ -35,7 +35,7 @@
 		D20000050000000000000005 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		D20000060000000000000006 /* SessionScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionScanner.swift; sourceTree = "<group>"; };
 		D20000070000000000000007 /* TerminalDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalDetector.swift; sourceTree = "<group>"; };
-		D20000080000000000000008 /* WindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManager.swift; sourceTree = "<group>"; };
+
 		D20000090000000000000009 /* ProcessManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessManager.swift; sourceTree = "<group>"; };
 		D2000010000000000000000A /* INTTCViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = INTTCViewModel.swift; sourceTree = "<group>"; };
 		D2000011000000000000000B /* PopoverContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverContentView.swift; sourceTree = "<group>"; };
@@ -116,7 +116,7 @@
 			children = (
 				D20000060000000000000006 /* SessionScanner.swift */,
 				D20000070000000000000007 /* TerminalDetector.swift */,
-				D20000080000000000000008 /* WindowManager.swift */,
+
 				D20000090000000000000009 /* ProcessManager.swift */,
 			);
 			path = Services;
@@ -235,7 +235,7 @@
 				D10000050000000000000005 /* AppState.swift in Sources */,
 				D10000060000000000000006 /* SessionScanner.swift in Sources */,
 				D10000070000000000000007 /* TerminalDetector.swift in Sources */,
-				D10000080000000000000008 /* WindowManager.swift in Sources */,
+
 				D10000090000000000000009 /* ProcessManager.swift in Sources */,
 				D1000010000000000000000A /* INTTCViewModel.swift in Sources */,
 				D1000011000000000000000B /* PopoverContentView.swift in Sources */,
