@@ -4,14 +4,6 @@ struct PopoverContentView: View {
     @ObservedObject var viewModel: INTTCViewModel
 
     var body: some View {
-        if viewModel.needsSetup {
-            SetupView(viewModel: viewModel)
-        } else {
-            mainView
-        }
-    }
-
-    private var mainView: some View {
         VStack(spacing: 0) {
             MasterToggleView(
                 isHidden: viewModel.isHidden,
