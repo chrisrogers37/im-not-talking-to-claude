@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - Initial release — macOS menubar utility to hide/restore Claude Code terminal sessions
 - One-click hide/show for all terminals running Claude Code
-- Global hotkey: Cmd+Shift+H
+- Global hotkey: Cmd+Shift+H (Carbon API — works without Input Monitoring permission)
 - Session detection for 6 terminals: Terminal.app, iTerm2, Warp, Kitty, Alacritty, Ghostty
 - Collapsible session catalog showing detected Claude sessions
 - Optional "Kill on Hide" — sends SIGTERM to Claude processes when hiding

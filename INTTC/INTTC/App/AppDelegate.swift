@@ -1,13 +1,13 @@
 import AppKit
+import Carbon
 import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
     private var statusItem: NSStatusItem!
     private var popover: NSPopover!
-    private let viewModel = INTTCViewModel()
+    fileprivate let viewModel = INTTCViewModel()
     private var eventMonitor: Any?
-    private var globalHotkeyMonitor: Any?
-    private var localHotkeyMonitor: Any?
+    private var hotKeyRef: EventHotKeyRef?
     private var sizeObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -41,26 +41,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             self?.updateIcon(isHidden: isHidden)
         }
 
-        // Global hotkey: Cmd+Shift+H
-        globalHotkeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handleHotkey(event)
-        }
-        localHotkeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handleHotkey(event)
-            return event
-        }
+        // Global hotkey: Cmd+Shift+H (Carbon API — no Input Monitoring permission required)
+        registerGlobalHotkey()
 
         viewModel.performCrashRecovery()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        if let hotKeyRef = hotKeyRef {
+            UnregisterEventHotKey(hotKeyRef)
+            self.hotKeyRef = nil
+        }
         viewModel.restoreBeforeQuit()
     }
 
-    private func handleHotkey(_ event: NSEvent) {
-        guard event.modifierFlags.contains([.command, .shift]),
-              event.charactersIgnoringModifiers?.lowercased() == "h" else { return }
-        viewModel.toggleMaster()
+    private func registerGlobalHotkey() {
+        var eventType = EventTypeSpec(
+            eventClass: OSType(kEventClassKeyboard),
+            eventKind: UInt32(kEventHotKeyPressed)
+        )
+
+        let selfPtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+
+        InstallEventHandler(
+            GetApplicationEventTarget(),
+            hotKeyHandler,
+            1,
+            &eventType,
+            selfPtr,
+            nil
+        )
+
+        var hotkeyID = EventHotKeyID(
+            signature: OSType(0x494E5454), // 'INTT'
+            id: 1
+        )
+
+        RegisterEventHotKey(
+            UInt32(kVK_ANSI_H),
+            UInt32(cmdKey | shiftKey),
+            hotkeyID,
+            GetApplicationEventTarget(),
+            0,
+            &hotKeyRef
+        )
     }
 
     private func adjustPopoverFrame() {
@@ -167,4 +191,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate {
             eventMonitor = nil
         }
     }
+}
+
+// Carbon event handler — must be a top-level function (C function pointer requirement)
+private func hotKeyHandler(
+    nextHandler: EventHandlerCallRef?,
+    event: EventRef?,
+    userData: UnsafeMutableRawPointer?
+) -> OSStatus {
+    guard let userData = userData else { return OSStatus(eventNotHandledErr) }
+    let delegate = Unmanaged<AppDelegate>.fromOpaque(userData).takeUnretainedValue()
+    delegate.viewModel.toggleMaster()
+    return noErr
 }
