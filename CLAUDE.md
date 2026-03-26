@@ -42,7 +42,7 @@ This file provides project-specific guidance for Claude Code. Update this file w
 INTTC/INTTC/
 ├── App/
 │   ├── INTTCApp.swift           — SwiftUI @main entry point
-│   └── AppDelegate.swift        — NSStatusItem, popover, Cmd+Shift+H hotkey, dynamic eye icon
+│   └── AppDelegate.swift        — NSStatusItem, popover, Carbon global hotkey, dynamic eye icon
 ├── Models/
 │   ├── TerminalApp.swift        — enum of 6 supported terminal bundle IDs
 │   ├── ClaudeSession.swift      — claudePID, terminalPID, terminalApp, projectPath
@@ -74,7 +74,7 @@ scripts/build-dmg.sh             — archive, sign, notarize, and package as DMG
 - **Restoring**: `NSRunningApplication.unhide()` — brings terminal apps back
 - **Kill on hide** (optional): `SIGTERM` targets Claude PIDs only (verified via `ps` before kill)
 - **Crash recovery**: Writes `~/Library/Application Support/INTTC/hidden-windows.json` before hiding; restores terminal visibility on next launch if file exists
-- **Global hotkey**: Cmd+Shift+H via NSEvent global + local monitors
+- **Global hotkey**: Cmd+Shift+H via Carbon `RegisterEventHotKey` — no Input Monitoring permission required
 - **Menubar icon**: Programmatic NSBezierPath — red open eye (exposed) / green closed eye (hidden)
 - **Scan timer**: Refreshes session list every 5 seconds on background queue
 
@@ -83,6 +83,7 @@ scripts/build-dmg.sh             — archive, sign, notarize, and package as DMG
 **INTTC requires NO special macOS permissions.** All APIs used are available to any user process:
 - `pgrep`, `proc_pidinfo()`, `sysctl()` — standard process enumeration
 - `NSRunningApplication.hide()/unhide()` — standard Cocoa API
+- Carbon `RegisterEventHotKey` — system-level global hotkey, no permissions needed
 - `kill()` for SIGTERM — works on user-owned processes without sudo
 
 The app originally planned to use AXUIElement (Accessibility API) for window manipulation, but the implementation uses the simpler `NSRunningApplication` approach instead. **Do not add Accessibility permission prompts or checks.**
