@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-const GITHUB_URL = "https://github.com/chrisrogers37/imnottalkingtoclaude";
-const RELEASES_URL = "https://github.com/chrisrogers37/imnottalkingtoclaude/releases";
+const GITHUB_URL = "https://github.com/chrisrogers37/im-not-talking-to-claude";
+const RELEASES_URL = "https://github.com/chrisrogers37/im-not-talking-to-claude/releases";
 
 // Color system
 const C = {
@@ -10,8 +10,8 @@ const C = {
   surfaceHover: "#1a1a1e",
   border: "rgba(255,255,255,0.06)",
   text: "#e8e8ed",
-  muted: "#6e6e7a",
-  faint: "#3a3a44",
+  muted: "#8b8b96",
+  faint: "#5a5a66",
   exposed: "#ef4444",
   exposedSoft: "rgba(239,68,68,0.08)",
   exposedGlow: "0 0 30px rgba(239,68,68,0.15)",
@@ -61,6 +61,18 @@ export default function INTTCLanding() {
         href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
         rel="stylesheet"
       />
+      <style>{`
+        @media (max-width: 768px) {
+          .inttc-header { padding: 20px 16px !important; }
+          .inttc-hero { padding: 40px 16px 16px !important; }
+          .inttc-section { padding-left: 16px !important; padding-right: 16px !important; }
+          .inttc-grid-3 { grid-template-columns: 1fr !important; }
+          .inttc-grid-features { grid-template-columns: 1fr !important; }
+          .inttc-grid-terminals { grid-template-columns: repeat(2, 1fr) !important; }
+          .inttc-mockup { max-width: 100% !important; }
+          .inttc-footer { padding: 20px 16px !important; }
+        }
+      `}</style>
 
       {/* Ambient glow that shifts with state */}
       <div
@@ -98,6 +110,7 @@ export default function INTTCLanding() {
 
       {/* Header */}
       <header
+        className="inttc-header"
         style={{
           padding: "28px 40px",
           display: "flex",
@@ -152,6 +165,7 @@ export default function INTTCLanding() {
 
       {/* Hero */}
       <section
+        className="inttc-hero"
         style={{
           padding: "56px 40px 20px",
           maxWidth: 860,
@@ -301,6 +315,7 @@ export default function INTTCLanding() {
 
       {/* Menubar Mockup */}
       <section
+        className="inttc-mockup"
         style={{
           maxWidth: 380,
           margin: "0 auto 40px",
@@ -490,7 +505,7 @@ export default function INTTCLanding() {
                 }}
               >
                 <span style={{ fontSize: 10.5, color: C.muted, fontFamily: "'Space Grotesk', sans-serif" }}>
-                  Suspend processes when hidden
+                  Kill Claude processes on hide
                 </span>
                 <div
                   style={{
@@ -527,7 +542,7 @@ export default function INTTCLanding() {
                 alignItems: "center",
               }}
             >
-              <span style={{ fontSize: 9, color: C.faint }}>v0.1.0</span>
+              <span style={{ fontSize: 9, color: C.faint }}>v0.2.0</span>
               <div style={{ display: "flex", gap: 12 }}>
                 <span style={{ fontSize: 9, color: C.faint, cursor: "pointer" }}>Launch at Login</span>
                 <span style={{ fontSize: 9, color: C.faint, cursor: "pointer" }}>Quit</span>
@@ -559,6 +574,7 @@ export default function INTTCLanding() {
 
       {/* How It Works */}
       <section
+        className="inttc-section"
         style={{
           maxWidth: 760,
           margin: "0 auto 56px",
@@ -581,6 +597,7 @@ export default function INTTCLanding() {
           How it works
         </div>
         <div
+          className="inttc-grid-3"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
@@ -655,6 +672,7 @@ export default function INTTCLanding() {
 
       {/* Feature grid */}
       <section
+        className="inttc-section"
         style={{
           maxWidth: 760,
           margin: "0 auto 56px",
@@ -664,6 +682,7 @@ export default function INTTCLanding() {
         }}
       >
         <div
+          className="inttc-grid-features"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -684,8 +703,8 @@ export default function INTTCLanding() {
               body: "Windows come back exactly where they were. Same position. Same size. Same virtual desktop. Like nothing happened.",
             },
             {
-              title: "Process freeze",
-              body: "Optionally SIGSTOP Claude processes while hidden. Zero CPU. Zero memory. Claude is on ice.",
+              title: "Kill on hide",
+              body: "Optionally terminate Claude processes when hiding. Clean shutdown via SIGTERM. No evidence left behind.",
             },
             {
               title: "Session catalog",
@@ -734,6 +753,7 @@ export default function INTTCLanding() {
 
       {/* Terminal support */}
       <section
+        className="inttc-section"
         style={{
           maxWidth: 540,
           margin: "0 auto 56px",
@@ -763,6 +783,7 @@ export default function INTTCLanding() {
             Supported terminals
           </div>
           <div
+            className="inttc-grid-terminals"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
@@ -788,13 +809,14 @@ export default function INTTCLanding() {
             ))}
           </div>
           <div style={{ fontSize: 10, color: C.faint, marginTop: 12, textAlign: "center", fontFamily: "'Space Grotesk', sans-serif" }}>
-            macOS Ventura and later · Requires Accessibility permission
+            macOS Ventura and later · No special permissions required
           </div>
         </div>
       </section>
 
       {/* The joke section */}
       <section
+        className="inttc-section"
         style={{
           maxWidth: 540,
           margin: "0 auto 56px",
@@ -842,6 +864,7 @@ export default function INTTCLanding() {
 
       {/* CTA */}
       <section
+        className="inttc-section"
         style={{
           maxWidth: 540,
           margin: "0 auto 56px",
@@ -863,7 +886,7 @@ export default function INTTCLanding() {
             style={{
               padding: "14px 36px",
               borderRadius: 8,
-              border: `1px solid ${statusColor}33`,
+              border: `1px solid ${statusColor}66`,
               background: hoverCTA ? statusSoft : "transparent",
               color: statusColor,
               fontSize: 13,
@@ -883,7 +906,7 @@ export default function INTTCLanding() {
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontSize: 11, color: C.faint, textDecoration: "none" }}
+            style={{ fontSize: 11, color: C.muted, textDecoration: "none" }}
           >
             View on GitHub →
           </a>
@@ -892,6 +915,7 @@ export default function INTTCLanding() {
 
       {/* Domain joke */}
       <section
+        className="inttc-section"
         style={{
           maxWidth: 540,
           margin: "0 auto 40px",
@@ -904,12 +928,13 @@ export default function INTTCLanding() {
         <div style={{ fontSize: 10, color: C.faint, fontFamily: "'Space Grotesk', sans-serif" }}>
           The full name is "Babe, I'm Not Talking To Claude."
           <br />
-          The domain is imnottalkingtoclaude.com. Yes, it's long. That's the joke.
+          Yes, it's a mouthful. That's the point.
         </div>
       </section>
 
       {/* Footer */}
       <footer
+        className="inttc-footer"
         style={{
           padding: "28px 40px",
           textAlign: "center",
