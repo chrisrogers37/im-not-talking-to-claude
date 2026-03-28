@@ -19,14 +19,23 @@ This file provides project-specific guidance for Claude Code. Update this file w
 
 ### Verification Before Done
 - Never mark a task complete without proving it works
+- Diff behavior between main and your changes when relevant
 - Run the build, check the app launches, verify the feature works
 - Ask yourself: "Would a staff engineer approve this?"
+
+### Autonomous Bug Fixing
+- When given a bug report: just fix it. Don't ask for hand-holding
+- Go fix failing CI tests without being told how
 
 ### Core Principles
 - **Simplicity First**: Make every change as simple as possible
 - **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
 - **Minimal Impact**: Changes should only touch what's necessary
-- **Demand Elegance** (Balanced): Pause for non-trivial changes, skip for obvious fixes
+- **Demand Elegance** (Balanced):
+  - For non-trivial changes: pause and ask "is there a more elegant way?"
+  - If a fix feels hacky: "Knowing everything I know now, implement the elegant solution"
+  - Skip this for simple, obvious fixes — don't over-engineer
+  - Challenge your own work before presenting it
 
 ---
 
@@ -168,6 +177,15 @@ After ANY correction from the user:
 2. Update `.claude/lessons.md` with the pattern
 3. Write rules that prevent the same mistake
 4. Review lessons at session start for this project
+
+## Task Management
+
+1. **Plan First**: Write plan to `.claude/todo.md` with checkable items
+2. **Verify Plan**: Check in before starting implementation
+3. **Track Progress**: Mark items complete as you go
+4. **Explain Changes**: High-level summary at each step
+5. **Document Results**: Add review section to `.claude/todo.md`
+6. **Capture Lessons**: Update `.claude/lessons.md` after corrections
 
 ---
 
