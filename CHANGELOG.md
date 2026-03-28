@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-03-28
+
+### Fixed
+- **Global hotkey** — replaced NSEvent with Carbon `RegisterEventHotKey` (no Input Monitoring permission needed)
+- **Landing page URLs** — corrected GitHub repository links
+- **Landing page copy** — removed false "Requires Accessibility permission" claim, updated "Suspend processes" to "Kill Claude processes on hide"
+- **Landing page domain** — removed reference to nonexistent imnottalkingtoclaude.com
+
+### Added
+- **Mobile responsive layout** — grids collapse, padding adapts at <768px breakpoint
+- **Vercel deployment** — landing page now live at im-not-talking-to-claude.vercel.app
+
+### Changed
+- **Text contrast** — bumped muted/faint colors for WCAG AA compliance
+- **CTA button** — improved border visibility and "View on GitHub" link contrast
+
 ## [0.1.0] — 2026-03-21
 
 ### Added
